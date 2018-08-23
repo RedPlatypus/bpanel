@@ -23,9 +23,12 @@ function clientsRouter(clients, defaultId) {
   router.get('/', (req, res) => res.status(200).json(clientInfo));
   router.get('/default', (req, res) => {
     if (!clients.has(defaultId))
-      return res
-        .status(500)
-        .send(`Error retrieving default client: ${defaultId}`);
+      return res.status(500).json({
+        error: {
+          message: `Error retrieving default client: ${defaultId}`,
+          code: 500
+        }
+      });
 
     const defaultClient = {
       id: defaultId,
@@ -39,9 +42,12 @@ function clientsRouter(clients, defaultId) {
   router.use('/:id', (req, res, next) => {
     id = req.params.id;
     if (!clients.has(id))
-      return res
-        .status(404)
-        .send(`Sorry, there was no client with the id ${id}`);
+      return res.status(404).json({
+        error: {
+          message: `Sorry, there was no client with the id ${id}`,
+          code: 404
+        }
+      });
     const clientObj = clients.get(id);
     config = clientObj.config;
     assert(config instanceof Config, 'client needs bcfg config');
@@ -63,9 +69,12 @@ function clientsRouter(clients, defaultId) {
     const { method, path, body, query, params } = req;
     const client = reqClients[params.client];
     if (!client)
-      res
-        .status(404)
-        .send(`Requested client ${params.client} for ${id} does not exist`);
+      return res.status(404).json({
+        error: {
+          message: `Requested client ${params.client} for ${id} does not exist`,
+          code: 404
+        }
+      });
 
     // use query params for GET request, otherwise use body
     const payload = method === 'GET' ? query : body;
